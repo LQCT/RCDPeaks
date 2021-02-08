@@ -243,16 +243,14 @@ def get_node_info(node, traj, k, cutoff):
     # Get RMSD(node), Kd(node) and knn sorted partition -----------------------
     node_rmsd = md.rmsd(traj, traj, node, precentered=True)
     rms_minors = node_rmsd < cutoff
-    node_rmsd_part = np.argpartition(node_rmsd, k)[:k + 1]
-    node_knn = np.nditer(
-        (node_rmsd_part[node_rmsd[node_rmsd_part[:k - 1]].argsort()],
-         node_rmsd[node_rmsd_part[node_rmsd[node_rmsd_part[:k - 1]].argsort()]]),
-         order='C')
     rho = np.count_nonzero(rms_minors)
+
+    node_rmsd_part = np.argpartition(node_rmsd, k)[:k + 1]
+    argsort_indx = node_rmsd[node_rmsd_part].argsort()
+    ordered_indx = node_rmsd_part[argsort_indx]
+    node_knn = zip(ordered_indx, node_rmsd[ordered_indx])
     next(node_knn)
-    # Get CoreDistance(A) as Kd -----------------------------------------------
-    node_info = (rho, node, node_knn)
-    return node_info
+    return (rho, node, node_knn)
 
 
 def rcdpeaks_data_info(traj, cutoff):
@@ -308,8 +306,6 @@ def rcdpeaks_data_info(traj, cutoff):
             try:
                 # consume the knn(A) iterator (in rmsd ordering) --------------
                 B, B_rmsd = next(A_knn)
-                B = int(B)
-                B_rmsd = float(B_rmsd)
             except StopIteration:
                 # if knn(A) exhausted, send A to exhausted heap then break ----
                 heapq.heappush(exhausted, (A_rho, A))
