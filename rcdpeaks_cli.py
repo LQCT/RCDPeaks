@@ -86,7 +86,7 @@ def parse_arguments():
                        type=str, required=False, default='None',
                        metavar='load_distance')
     clust.add_argument('-auto', action='store', dest='automatic',
-                       help=bool, required=False, default=True,
+                       type=bool, required=False, default=True,
                        metavar='automatic_centers')
     # Arguments: analysis -----------------------------------------------------
     out = parser.add_argument_group(title='Output options')
