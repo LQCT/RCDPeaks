@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 import mdtraj as md
-from bitarray import bitarray as ba
+#from bitarray import bitarray as ba
 
 
 def parse_arguments():
@@ -70,7 +70,7 @@ def parse_arguments():
                        type=float, required=False, default=None,
                        metavar='distance_threshold')
     clust.add_argument('-rc', action='store', dest='density_cut',
-                       help='Density threshold for the desition graph',
+                       help='Density threshold for the desition graph', 
                        type=float, required=False, default=None,
                        metavar='density_threshold')
     clust.add_argument('-lnn', action='store', dest='load_nnhd',
@@ -85,6 +85,9 @@ def parse_arguments():
                        help='Pickle file of distance of each node',
                        type=str, required=False, default='None',
                        metavar='load_distance')
+    clust.add_argument('-auto', action='store', dest='automatic',
+                       help=bool, required=False, default=True,
+                       metavar='automatic_centers')
     # Arguments: analysis -----------------------------------------------------
     out = parser.add_argument_group(title='Output options')
     out.add_argument('-odir', action='store', dest='outdir',
@@ -199,11 +202,10 @@ def pickle_to_file(data, file_name):
         pickle.dump(data, file)
     return file_name
 
-
 def unpickle_from_file(file_name):
     """
     Load data of a **pickle** file
-
+    
     Parameters
     ----------
     file_name : str
@@ -254,31 +256,30 @@ def get_node_info(node, traj, k, cutoff):
     return (rho, node, node_knn)
 
 
-def rcdpeaks_data_info(traj, cutoff):
+def rcdpeaks_data_info(traj, cutoff, N):
     """
-    Compute the density and distance for the desition graph and find the
+    Compute the density and distance for the desition graph and find the 
     nearest neighbor of high density of each node.
-
+    
     Parameters
     ----------
     traj : MDTraj.Trajectory
         Trajectory object to analyse
     cutoff : numpy.array
-        Array of the size of trajectory filled with the RMSD cutoff for
+        Array of the size of trajectory filled with the RMSD cutoff for 
         pairwise comparison.
-
+    
     Returns
     -------
     nnhd : numpy.array
-        Array containing the nearest neighbor of high density (value) of each
+        Array containing the nearest neighbor of high density (value) of each 
         node (index).
     rho_arr : numpy.array
         Array containing the density (value) of each node (index).
     delta_arr : numpy.array
-        Array containing the distance (value) of each node (index) to its
+        Array containing the distance (value) of each node (index) to its 
         nearest neighbor of high density.
     """
-    N = traj.n_frames
     rho_arr = np.zeros(N, dtype=np.int32)
     delta_arr = np.zeros(N, dtype=np.float32)
     nnhd = np.zeros(N, dtype=np.int32)
@@ -345,21 +346,20 @@ def rcdpeaks_data_info(traj, cutoff):
     return nnhd, rho_arr, delta_arr
 
 
-def rcdpeaks_clusters(nnhd, rho_arr, delta_arr, density_cut, distance_cut,
-                      traj, cutoff):
+def rcdpeaks_clusters(nnhd, rho_arr, centers, traj, cutoff, N):
     """
-    Construct the clusters based on the Density Peaks clustering algorithm.
+    Construct the clusters based on the Density Peaks clustering algorithm. 
     Find a core region based on Daura's algorithm.
-
+    
     Parameters
     ----------
     nnhd : numpy.array
-        Array containing the nearest neighbor of high density (value) of each
+        Array containing the nearest neighbor of high density (value) of each 
         node (index).
     rho_arr : numpy.array
         Array containing the density (value) of each node (index).
     delta_arr : numpy.array
-        Array containing the distance (value) of each node (index) to its
+        Array containing the distance (value) of each node (index) to its 
         nearest neighbor of high density.
     density_cut : float
         Density threshold for the desition graphs.
@@ -368,35 +368,26 @@ def rcdpeaks_clusters(nnhd, rho_arr, delta_arr, density_cut, distance_cut,
     traj : MDTraj.Trajectory
         Trajectory object to analyse.
     cutoff : numpy.array
-        Array of the size of trajectory filled with the RMSD cutoff for
+        Array of the size of trajectory filled with the RMSD cutoff for 
         pairwise comparison.
-
+    
     Returns
     -------
     clusters_array : numpy.array
         Array containing the cluster number (value) of each node (index).
     core : numpy.array
-        Array containing the core number (value) of each node (index). The
-        nodes with value 0 does not belong to any core.
+        Array containing the core number (value) of each node (index). The 
+        nodes with value 0 does not belong to any core. 
     """
-    N = traj.n_frames
     matrix = OrderedDict()
     core = np.zeros(N, dtype=np.int32)
-
-    delta_arr_c = np.greater_equal(delta_arr,
-                                   np.fromiter([distance_cut / 10] * N,
-                                               dtype=np.float32))
-    rho_arr_c = np.greater_equal(rho_arr,
-                                 np.fromiter([density_cut] * N,
-                                             dtype=np.float32))
-    cluster_centers = np.where((delta_arr_c & rho_arr_c))[0]
-    nnhd[cluster_centers] = -1
-    centers_bits = ba()
-    centers_bits.pack((delta_arr_c & rho_arr_c).tobytes())
+    nnhd[centers] = -1
+    centers_bits = np.zeros(N, dtype=np.bool)
+    centers_bits[centers] = True
 
     # Asigning each node to its cluster and merging clusters with near centers
     centers_heap = []
-    for center in cluster_centers:
+    for center in centers:
         heapq.heappush(centers_heap, (rho_arr[center], center))
 
     clusters_array = np.zeros(N, dtype=np.int32)
@@ -442,16 +433,14 @@ def rcdpeaks_clusters(nnhd, rho_arr, delta_arr, density_cut, distance_cut,
             clusters_array[cluster_members] = c_count
             node_neigh = set.difference(set(cluster_members), node_neigh)
 
-        cluster_bits = ba()
-        cluster_bits.pack((clusters_array == c_count).tobytes())
+        cluster_bits = clusters_array == c_count
 
         node_rmsd = md.rmsd(traj, traj, center, precentered=True)
         rms_minors = node_rmsd < cutoff
-        node_bits = ba()
-        node_bits.pack(rms_minors.tobytes())
 
-        matrix.update({center: (node_bits & centers_bits).search(ba('1'))})
-        core[np.frombuffer(node_bits.unpack(), dtype=np.bool)] = c_count
+        matrix.update({center: np.where((rms_minors & centers_bits) == True)[0]})
+        core[(rms_minors & cluster_bits)] = c_count
+    print('\n')
     for i in range(1, c_count + 1):
         print('>>Cluster {}: {} frames and {} in core'.format(i,
                np.count_nonzero(clusters_array == i),
@@ -463,13 +452,13 @@ def rcdpeaks_clusters(nnhd, rho_arr, delta_arr, density_cut, distance_cut,
 def desition_graph(outdir, density_array, distance_array):
     """
     Save the desition graph
-
+    
     Parameters
     ----------
         density_array : numpy.array
            Array with the density of each frame.
         distance_array : numpy.array
-            Array with the distance of each frame to its nearest neighbor of
+            Array with the distance of each frame to its nearest neighbor of 
            high density
     """
     mpl.rc('figure', autolayout=True, figsize=[3.33, 2.5], dpi=300)
@@ -495,6 +484,7 @@ def desition_graph(outdir, density_array, distance_array):
     plt.close()
 
 
+
 if __name__ == '__main__':
     # Load user arguments ------------------------------------------------
     args = parse_arguments()
@@ -505,6 +495,7 @@ if __name__ == '__main__':
     print('\n\nLoading trajectory')
     trajectory = load_trajectory(args)
     cutoff = np.full(trajectory.n_frames, args.cutoff / 10, dtype=np.float32)
+    N = trajectory.n_frames
 
     # Load data from previous analysis
     if (args.load_nnhd, args.load_rho, args.load_delta) != ('None', 'None',
@@ -518,7 +509,7 @@ if __name__ == '__main__':
     # Calculating trajectory data
     else:
         print('\nComputing Nearest Neighbors, Densities and Distances.')
-        nnhd, rho_arr, delta_arr = rcdpeaks_data_info(trajectory, cutoff)
+        nnhd, rho_arr, delta_arr = rcdpeaks_data_info(trajectory, cutoff, N)
         print('\nSaving desition graph')
         desition_graph(args.outdir, rho_arr, delta_arr)
         print('\nSaving trajectory information in pickle flies')
@@ -526,16 +517,37 @@ if __name__ == '__main__':
         pickle_to_file(rho_arr, (args.outdir + 'density.pickle'))
         pickle_to_file(delta_arr, (args.outdir + 'distance.pickle'))
 
+    if args.automatic == True:
+        gamma = delta_arr * rho_arr
+        cluster_centers = []
+        gamma_heap = []
+        for i, n in enumerate(gamma):
+            heapq.heappush(gamma_heap, (-n, i, delta_arr[i]))
+        while True:
+            score, node, distance = heapq.heappop(gamma_heap)
+            if distance >= (args.cutoff /10):
+                cluster_centers.append(node)
+            else:
+                break
+        cluster_centers = np.asarray(cluster_centers)
+    else:
+        no_distance = '\n\nNo distance threshold provided. Exiting'
+        assert args.distance_cut, no_distance
+        no_density = '\n\nNo density threshold provided Exiting.'
+        assert args.density_cut, no_density
 
-    no_distance = '\n\nNo distance threshold provided. Exiting'
-    assert args.distance_cut, no_distance
-    no_density = '\n\nNo density threshold provided Exiting.'
-    assert args.density_cut, no_density
+        delta_arr_c = np.greater_equal(delta_arr,
+                                   np.fromiter([args.distance_cut / 10] * N,
+                                               dtype=np.float32))
+        rho_arr_c = np.greater_equal(rho_arr,
+                                     np.fromiter([args.density_cut] * N,
+                                                 dtype=np.float32))
+        cluster_centers = np.where((delta_arr_c & rho_arr_c))[0]
+
 
     print('\nClustering...')
-    clusters, core = rcdpeaks_clusters(nnhd, rho_arr, delta_arr,
-                                       args.density_cut, args.distance_cut,
-                                       trajectory, cutoff)
+    clusters, core = rcdpeaks_clusters(nnhd, rho_arr, cluster_centers,
+                                       trajectory, cutoff, N)
 
     # Write files to VMD
     print('\nWriting files for VMD')
