@@ -70,7 +70,7 @@ def parse_arguments():
                        type=float, required=False, default=None,
                        metavar='distance_threshold')
     clust.add_argument('-rc', action='store', dest='density_cut',
-                       help='Density threshold for the desition graph', 
+                       help='Density threshold for the desition graph',
                        type=float, required=False, default=None,
                        metavar='density_threshold')
     clust.add_argument('-lnn', action='store', dest='load_nnhd',
@@ -199,10 +199,11 @@ def pickle_to_file(data, file_name):
         pickle.dump(data, file)
     return file_name
 
+
 def unpickle_from_file(file_name):
     """
     Load data of a **pickle** file
-    
+
     Parameters
     ----------
     file_name : str
@@ -255,26 +256,26 @@ def get_node_info(node, traj, k, cutoff):
 
 def rcdpeaks_data_info(traj, cutoff):
     """
-    Compute the density and distance for the desition graph and find the 
+    Compute the density and distance for the desition graph and find the
     nearest neighbor of high density of each node.
-    
+
     Parameters
     ----------
     traj : MDTraj.Trajectory
         Trajectory object to analyse
     cutoff : numpy.array
-        Array of the size of trajectory filled with the RMSD cutoff for 
+        Array of the size of trajectory filled with the RMSD cutoff for
         pairwise comparison.
-    
+
     Returns
     -------
     nnhd : numpy.array
-        Array containing the nearest neighbor of high density (value) of each 
+        Array containing the nearest neighbor of high density (value) of each
         node (index).
     rho_arr : numpy.array
         Array containing the density (value) of each node (index).
     delta_arr : numpy.array
-        Array containing the distance (value) of each node (index) to its 
+        Array containing the distance (value) of each node (index) to its
         nearest neighbor of high density.
     """
     N = traj.n_frames
@@ -347,18 +348,18 @@ def rcdpeaks_data_info(traj, cutoff):
 def rcdpeaks_clusters(nnhd, rho_arr, delta_arr, density_cut, distance_cut,
                       traj, cutoff):
     """
-    Construct the clusters based on the Density Peaks clustering algorithm. 
+    Construct the clusters based on the Density Peaks clustering algorithm.
     Find a core region based on Daura's algorithm.
-    
+
     Parameters
     ----------
     nnhd : numpy.array
-        Array containing the nearest neighbor of high density (value) of each 
+        Array containing the nearest neighbor of high density (value) of each
         node (index).
     rho_arr : numpy.array
         Array containing the density (value) of each node (index).
     delta_arr : numpy.array
-        Array containing the distance (value) of each node (index) to its 
+        Array containing the distance (value) of each node (index) to its
         nearest neighbor of high density.
     density_cut : float
         Density threshold for the desition graphs.
@@ -367,16 +368,16 @@ def rcdpeaks_clusters(nnhd, rho_arr, delta_arr, density_cut, distance_cut,
     traj : MDTraj.Trajectory
         Trajectory object to analyse.
     cutoff : numpy.array
-        Array of the size of trajectory filled with the RMSD cutoff for 
+        Array of the size of trajectory filled with the RMSD cutoff for
         pairwise comparison.
-    
+
     Returns
     -------
     clusters_array : numpy.array
         Array containing the cluster number (value) of each node (index).
     core : numpy.array
-        Array containing the core number (value) of each node (index). The 
-        nodes with value 0 does not belong to any core. 
+        Array containing the core number (value) of each node (index). The
+        nodes with value 0 does not belong to any core.
     """
     N = traj.n_frames
     matrix = OrderedDict()
@@ -462,13 +463,13 @@ def rcdpeaks_clusters(nnhd, rho_arr, delta_arr, density_cut, distance_cut,
 def desition_graph(outdir, density_array, distance_array):
     """
     Save the desition graph
-    
+
     Parameters
     ----------
         density_array : numpy.array
            Array with the density of each frame.
         distance_array : numpy.array
-            Array with the distance of each frame to its nearest neighbor of 
+            Array with the distance of each frame to its nearest neighbor of
            high density
     """
     mpl.rc('figure', autolayout=True, figsize=[3.33, 2.5], dpi=300)
@@ -492,7 +493,6 @@ def desition_graph(outdir, density_array, distance_array):
     plt.scatter(density_array, distance_array*10, marker='+')
     plt.savefig((outdir + 'desition_graph'), dpi=300, bbox_inches='tight')
     plt.close()
-
 
 
 if __name__ == '__main__':
