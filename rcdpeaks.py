@@ -50,8 +50,7 @@ def main():
     # =========================================================================
     # 1. Load and check user arguments
     # =========================================================================
-    # args = dpf.parse_arguments()
-    # args.restart = os.path.abspath(args.restart)
+    args = dpf.parse_arguments()
 
     # ++++ when automatic detecting cluster centers +++++++++++++++++++++++++++
     # cutoffs for the Decision Graph must be specified together
@@ -72,6 +71,7 @@ def main():
                          ' cutoffs (-dcut and -rcut).')
     # ++++ when restarting jobs +++++++++++++++++++++++++++++++++++++++++++++++
     if args.restart:
+        args.restart = os.path.abspath(args.restart)
         if not os.path.exists(args.restart):
             raise ValueError('\n\n>>> Arguments Inconsistency\nThe path to the'
                              ' restart pickle file you provided does not exist.')

@@ -181,13 +181,13 @@ def is_valid_top(topology, valid_tops):
     try:
         top_ext = topology.split('.')[-1]
     except AttributeError:
-        raise ValueError('You should pass a topology object. '
-                         'Valid topology formats are: {}'.format(valid_tops))
+        raise ValueError('You should pass a valid topology object. '
+                         'Valid topology extensions are: {}'.format(valid_tops))
 
     if top_ext not in valid_tops:
-        raise ValueError('The topology format "{}"'.format(top_ext) +
-                         'is not available. Valid topology formats'
-                         'are: {}'.format(valid_tops))
+        raise ValueError('The topology format "{}"'.format(top_ext)
+                         + 'is not available. Valid topology formats'
+                         ' are: {}'.format(valid_tops))
     return True
 
 
@@ -210,6 +210,12 @@ def load_raw_traj(traj, valid_trajs, topology=None):
         Raw trajectory.
 
     """
+    if traj_needs_top(traj) and not topology:
+        traj_ext = traj.split('.')[-1]
+        raise ValueError('\n\n>>> Arguments Inconsistency\nYou should pass'
+                         ' the -top argument for this trajectory extension'
+                         ' ({}).'.format(traj_ext))
+
     if is_valid_traj(traj, valid_trajs) and traj_needs_top(traj):
         if is_valid_top(topology, valid_tops):
             return md.load(traj, top=topology)
