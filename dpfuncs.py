@@ -127,11 +127,13 @@ def is_valid_traj(traj, valid_trajs):
         True if trajectory extension is supported.
 
     """
-    traj_ext = traj.split('.')[-1]
+    traj_ext = os.path.basename(traj).split('.')[-1]
     if traj_ext not in valid_trajs:
-        raise ValueError('The trajectory format "{}" '.format(traj_ext) +
-                         'is not available. Valid trajectory formats '
-                         'are: {}'.format(valid_trajs))
+        raise ValueError('\n\n>>> Arguments Inconsistency\nThe trajectory'
+                         ' extension "{}" '.format(traj_ext)
+                         + 'is not available. Options'
+                         ' are: {}'.format(valid_tops))
+
     return True
 
 
@@ -150,7 +152,7 @@ def traj_needs_top(traj):
         True if trajectory needs topological information.
 
     """
-    traj_ext = traj.split('.')[-1]
+    traj_ext = os.path.basename(traj).split('.')[-1]
     if traj_ext in ['h5', 'lh5', 'pdb']:
         return False
     return True
@@ -178,15 +180,12 @@ def is_valid_top(topology, valid_tops):
         DESCRIPTION.
 
     """
-    try:
-        top_ext = topology.split('.')[-1]
-    except AttributeError:
-        raise ValueError('You should pass a valid topology object. '
-                         'Valid topology extensions are: {}'.format(valid_tops))
+    top_ext = os.path.basename(topology).split('.')[-1]
 
     if top_ext not in valid_tops:
-        raise ValueError('The topology format "{}"'.format(top_ext)
-                         + 'is not available. Valid topology formats'
+        raise ValueError('\n\n>>> Arguments Inconsistency\nThe topology'
+                         ' extension "{}" '.format(top_ext)
+                         + 'is not available. Options'
                          ' are: {}'.format(valid_tops))
     return True
 
@@ -251,10 +250,14 @@ def shrink_traj_selection(traj, selection):
         try:
             sel_indx = traj.topology.select(selection)
         except Exception:
-            raise ValueError('Specified selection is invalid')
+            raise ValueError('\n\n>>> Arguments Inconsistency\nSpecified'
+                             ' selection "{}"'.format(selection)
+                             + ' is invalid in MDTraj.')
 
         if sel_indx.size == 0:
-            raise ValueError('Specified selection corresponds to no atoms')
+            raise ValueError('\n\n>>> Arguments Inconsistency\nSpecified'
+                             ' selection "{}"'.format(selection)
+                             + ' corresponds to no atoms.')
         traj = traj.atom_slice(sel_indx, inplace=True)
     return traj
 
@@ -296,13 +299,16 @@ def shrink_traj_range(first, last, stride, traj):
     stride_range = range(1, delta)
     # Raising if violations ---------------------------------------------------
     if first not in first_range:
-        raise ValueError('"first" parameter should be in the interval [{},{}]'
+        raise ValueError('\n\n>>> Arguments Inconsistency\n-first argument'
+                         ' must be in the interval [{}, {}).'
                          .format(first_range.start, first_range.stop))
     if last and (last not in last_range):
-        raise ValueError('"last" parameter should be in the interval [{},{}]'
+        raise ValueError('\n\n>>> Arguments Inconsistency\n-last argument'
+                         ' must be in the interval [{},{}).'
                          .format(last_range.start, last_range.stop))
     if stride not in stride_range:
-        raise ValueError('"stride" parameter should be in the interval [{},{}]'
+        raise ValueError('\n\n>>> Arguments Inconsistency\n-stride argument'
+                         ' must be in the interval [{},{}).'
                          .format(stride_range.start, stride_range.stop))
     # Slicing trajectory ------------------------------------------------------
     sliced = slice(first, last, stride)
