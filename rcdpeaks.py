@@ -52,6 +52,11 @@ def main():
     # =========================================================================
     args = dpf.parse_arguments()
 
+    if os.path.exists(args.outdir):
+        raise ValueError('\n\n>>> Arguments Inconsistency\nOutput directory '
+                         '"{}" exists. Aborting to avoid'.format(args.outdir)
+                         + ' overwriting.')
+
     # ++++ when automatic detecting cluster centers +++++++++++++++++++++++++++
     # cutoffs for the Decision Graph must be specified together
     cutoffs = [args.distance_cut, args.density_cut]
