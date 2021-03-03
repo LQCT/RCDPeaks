@@ -657,7 +657,7 @@ def pickle_to_file(data, file_name):
     return file_name
 
 
-def create_dir_hierarchy(outdir, top, merged_by_level):
+def create_dir_hierarchy(outdir, traj, merged_by_level):
     """
     Create de directory hierarchy to store output results.
 
@@ -665,7 +665,7 @@ def create_dir_hierarchy(outdir, top, merged_by_level):
     ----------
     outdir : str
         Path where to store outputs.
-    top : str
+    traj : str
         Path to the topology file.
     merged_by_levels : list
         List containing the array of merged centers.
@@ -682,7 +682,7 @@ def create_dir_hierarchy(outdir, top, merged_by_level):
     out_subdirs : list
         List of the output subdirs.
     """
-    outlabel = 'RCDP-{}'.format(os.path.basename(top).split('.')[0])
+    outlabel = 'RCDP-{}'.format(os.path.basename(traj).split('.')[0])
     out_dir = join(outdir, outlabel)
     out_subdirs = []
     for i, n in enumerate(merged_by_level):

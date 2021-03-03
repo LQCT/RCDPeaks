@@ -12,24 +12,24 @@ import dpfuncs as dpf
 
 
 # >>>> Debugging section <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-# import argparse
-# args = argparse.Namespace()
-# # args.trajectory = "/home/rga/BSProject/runners/trajs/trajs/traj4clust/250K.dcd"
-# # args.topology = "/home/rga/BSProject/runners/trajs/trajs/traj4clust/250K.psf"
-# args.trajectory = None
-# args.topology = None
-# args.first = None
-# args.last = None
-# args.stride = None
-# args.selection = None
-# args.cutoff = None
-# args.density_cut = None
-# args.distance_cut = None
-# args.restart = './RCDP-aligned_tau/restart.pickle'
-# args.restart = os.path.abspath(args.restart)
-# args.automatic = 'True'
-# args.outdir = '/home/rga/Desktop'
-# args.outdir = os.path.abspath(args.outdir)
+import argparse
+args = argparse.Namespace()
+# args.trajectory = "/home/rga/BSProject/runners/trajs/trajs/traj4clust/250K.dcd"
+# args.topology = "/home/rga/BSProject/runners/trajs/trajs/traj4clust/250K.psf"
+args.trajectory = None
+args.topology = None
+args.first = None
+args.last = None
+args.stride = None
+args.selection = None
+args.cutoff = None
+args.density_cut = 54
+args.distance_cut = 3.5
+args.restart = './working/RCDP-aligned_tau/restart.pickle'
+args.restart = os.path.abspath(args.restart)
+args.automatic = 'False'
+args.outdir = '/home/rga/Desktop/'
+args.outdir = os.path.abspath(args.outdir)
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
@@ -51,11 +51,6 @@ def main():
     # 1. Load and check user arguments
     # =========================================================================
     args = dpf.parse_arguments()
-
-    if os.path.exists(args.outdir):
-        raise ValueError('\n\n>>> Arguments Inconsistency\nOutput directory '
-                         '"{}" exists. Aborting to avoid'.format(args.outdir)
-                         + ' overwriting.')
 
     # ++++ when automatic detecting cluster centers +++++++++++++++++++++++++++
     # cutoffs for the Decision Graph must be specified together
@@ -121,6 +116,12 @@ def main():
               + '\nNote that -first, -last, -sel, and -cutoff options were set'
               ' to the values found in {}\n\n'.format(args.restart))
 
+    outlabel = 'RCDP-{}'.format(os.path.basename(args.trajectory).split('.')[0])
+    out_dir = join(args.outdir, outlabel)
+    if os.path.exists(out_dir):
+        raise ValueError('\n\n>>> Arguments Inconsistency\nOutput directory '
+                         '"{}" exists. Aborting to avoid'.format(out_dir)
+                         + ' overwriting.')
     # =========================================================================
     # 2. Loading trajectory
     # =========================================================================
@@ -150,13 +151,13 @@ def main():
     # 4. RCDPeaks clustering
     # =========================================================================
     # ... auto-detect centers by iterative Garza-Flores method ................
-    if args.automatic:
+    if args.automatic == 'True':
         nodes_by_level = dpf.autodetect_centers(delta_arr, rho_arr)
     # ... detect centers by user-specified arguments ..........................
     else:
         delta_arr_c = np.where(delta_arr >= args.distance_cut / 10)[0]
         rho_arr_c = np.where(rho_arr >= args.density_cut)[0]
-        nodes_by_level = [np.where((delta_arr_c & rho_arr_c))[0]]
+        nodes_by_level = [np.intersect1d(delta_arr_c, rho_arr_c)]
 
     # ... merge non-orthogonal centers ........................................
     merged_by_level, neighborhoods_by_level = dpf.merge_centers(
@@ -172,7 +173,7 @@ def main():
     # 5. Generating outputs
     # =========================================================================
     # >>>> create hierarchy ___________________________________________________
-    root_dir, subdirs = dpf.create_dir_hierarchy(args.outdir, args.topology,
+    root_dir, subdirs = dpf.create_dir_hierarchy(args.outdir, args.trajectory,
                                                  merged_by_level)
     # >>>> restart pickle file ________________________________________________
     dpf.output_restart(root_dir, args.first, args.stride, args.last,
