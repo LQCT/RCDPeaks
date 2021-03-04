@@ -727,7 +727,8 @@ def generic_matplotlib():
     mpl.rc('grid', alpha=0.5, color='gray', linewidth=1, linestyle='--')
 
 
-def output_decision_graph(delta_arr, rho_arr, merged_by_level, out_subdirs):
+def output_decision_graph(delta_arr, rho_arr, merged_by_level, out_subdirs,
+                          dcut=None, rcut=None):
     """
     Output the decision graph for each level of merged centers.
 
@@ -750,9 +751,14 @@ def output_decision_graph(delta_arr, rho_arr, merged_by_level, out_subdirs):
     generic_matplotlib()
     delta_ave = delta_arr.mean()
     rho_ave = rho_arr.mean()
-    for i, selection in enumerate(merged_by_level):
+    if all([dcut, rcut]):
+        plt.axhline(dcut, lw=2, color='r', ls='--')
+        plt.axvline(rcut, lw=2, color='r', ls='--')
+    else:
         plt.axhline(delta_ave, lw=2, color='k', ls='--')
         plt.axvline(rho_ave, lw=2, color='k', ls='--')
+    for i, selection in enumerate(merged_by_level):
+
         plt.suptitle('Decision Graph', fontsize=20)
         plt.xlabel("$\\rho$", fontsize=20)
         plt.ylabel("$\\delta$", fontsize=20)

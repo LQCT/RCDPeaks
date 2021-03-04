@@ -14,19 +14,19 @@ import dpfuncs as dpf
 # >>>> Debugging section <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 import argparse
 args = argparse.Namespace()
-# args.trajectory = "/home/rga/BSProject/runners/trajs/trajs/traj4clust/250K.dcd"
-# args.topology = "/home/rga/BSProject/runners/trajs/trajs/traj4clust/250K.psf"
-args.trajectory = None
-args.topology = None
-args.first = None
+args.trajectory = "/home/rga/BSProject/runners/trajs/aligned_tau.dcd"
+args.topology = "/home/rga/BSProject/runners/trajs/aligned_tau.pdb"
+args.first = 0
 args.last = None
-args.stride = None
-args.selection = None
-args.cutoff = None
-args.density_cut = 54
+args.stride = 1
+args.selection = 'all'
+args.cutoff = 2.5
+args.density_cut = 48
 args.distance_cut = 3.5
-args.restart = './working/RCDP-aligned_tau/restart.pickle'
-args.restart = os.path.abspath(args.restart)
+# args.restart = './working/RCDP-aligned_tau/restart.pickle'
+args.restart = None
+if args.restart:
+    args.restart = os.path.abspath(args.restart)
 args.automatic = 'False'
 args.outdir = '/home/rga/Desktop/'
 args.outdir = os.path.abspath(args.outdir)
@@ -50,7 +50,7 @@ def main():
     # =========================================================================
     # 1. Load and check user arguments
     # =========================================================================
-    args = dpf.parse_arguments()
+    # args = dpf.parse_arguments()
 
     # ++++ when automatic detecting cluster centers +++++++++++++++++++++++++++
     # cutoffs for the Decision Graph must be specified together
@@ -155,9 +155,12 @@ def main():
         nodes_by_level = dpf.autodetect_centers(delta_arr, rho_arr)
     # ... detect centers by user-specified arguments ..........................
     else:
-        delta_arr_c = np.where(delta_arr >= args.distance_cut / 10)[0]
-        rho_arr_c = np.where(rho_arr >= args.density_cut)[0]
-        nodes_by_level = [np.intersect1d(delta_arr_c, rho_arr_c)]
+        dcut, rcut = args.distance_cut / 10, args.density_cut
+        delta_arr_c = np.where(delta_arr >= dcut)[0]
+        rho_arr_c = np.where(rho_arr >= rcut)[0]
+        selected = np.intersect1d(delta_arr_c, rho_arr_c)
+        order = (-delta_arr[selected] * rho_arr[selected]).argsort()
+        nodes_by_level = [selected[order]]
 
     # ... merge non-orthogonal centers ........................................
     merged_by_level, neighborhoods_by_level = dpf.merge_centers(
@@ -180,7 +183,12 @@ def main():
                        args.selection, args.topology, args.trajectory,
                        args.cutoff, nnhd_arr, delta_arr, rho_arr)
     # >>>> decision graph _____________________________________________________
-    dpf.output_decision_graph(delta_arr, rho_arr, merged_by_level, subdirs)
+    if args.automatic == 'False':
+        dpf.output_decision_graph(delta_arr, rho_arr, merged_by_level, subdirs,
+                                  dcut, rcut)
+    else:
+        dpf.output_decision_graph(delta_arr, rho_arr, merged_by_level, subdirs)
+
     # >>>> frames info for refined & exact labeling ___________________________
     dpf.output_frames_info(N1, args.first, args.last, args.stride,
                            refined_clusters_by_level, subdirs, 'refined')
