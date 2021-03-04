@@ -489,6 +489,11 @@ def autodetect_centers(delta_arr, rho_arr):
     gamma_ordered = gamma_candidates[order]
     # flores-garza distances and retrieval by last gap procedure --------------
     d_i = abs(np.diff(gamma_ordered))
+    if d_i.size == 0:
+        raise ValueError('\n\n>>> Algorithm Inconsistency\nThe autodetection'
+                         ' of cluster centers can not proceed for the'
+                         ' specified argument values. Please set -auto_centers'
+                         ' to False')
     d_ave = d_i.mean()
     nnodes = 10
     nodes_by_level = []

@@ -12,26 +12,26 @@ import dpfuncs as dpf
 
 
 # >>>> Debugging section <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-import argparse
-args = argparse.Namespace()
-args.trajectory = "/home/rga/BSProject/runners/trajs/aligned_tau.dcd"
-args.topology = "/home/rga/BSProject/runners/trajs/aligned_tau.pdb"
-args.first = 0
-args.last = None
-args.stride = 1
-args.selection = 'all'
-args.cutoff = 2.5
-args.density_cut = 48
-args.distance_cut = 3.5
-# args.restart = './working/RCDP-aligned_tau/restart.pickle'
-args.restart = None
-if args.restart:
-    args.restart = os.path.abspath(args.restart)
-args.automatic = 'False'
-args.outdir = '/home/rga/Desktop/'
-args.outdir = os.path.abspath(args.outdir)
+# import argparse
+# args = argparse.Namespace()
+# args.trajectory = "/home/rga/BSProject/runners/trajs/aligned_tau.dcd"
+# args.topology = "/home/rga/BSProject/runners/trajs/aligned_tau.pdb"
+# args.first = 0
+# args.last = None
+# args.stride = 1
+# args.selection = 'all'
+# args.cutoff = 2.5
+# args.density_cut = None
+# args.distance_cut = None
+# # args.restart = './working/RCDP-aligned_tau/restart.pickle'
+# args.restart = None
+# if args.restart:
+#     args.restart = os.path.abspath(args.restart)
+# args.automatic = 'True'
+# args.outdir = '.'
+# args.outdir = os.path.abspath(args.outdir)
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
+# TODO: automatic 1-based matplotlib ticks
 
 def main():
     """
@@ -50,7 +50,7 @@ def main():
     # =========================================================================
     # 1. Load and check user arguments
     # =========================================================================
-    # args = dpf.parse_arguments()
+    args = dpf.parse_arguments()
 
     # ++++ when automatic detecting cluster centers +++++++++++++++++++++++++++
     # cutoffs for the Decision Graph must be specified together
@@ -161,6 +161,11 @@ def main():
         selected = np.intersect1d(delta_arr_c, rho_arr_c)
         order = (-delta_arr[selected] * rho_arr[selected]).argsort()
         nodes_by_level = [selected[order]]
+        if nodes_by_level[0].size == 0:
+            raise ValueError('\n\n>>> Arguments Inconsistency\nThe number of '
+                             ' cluster centers detected with current arguments'
+                             + ' equals zero. Please change -dcut and -rcut to'
+                             ' more appropiate values. Aborting.')
 
     # ... merge non-orthogonal centers ........................................
     merged_by_level, neighborhoods_by_level = dpf.merge_centers(
