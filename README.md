@@ -29,6 +29,7 @@ After successfully installing __MDTraj__, you can easily install RCDPeaks and th
 
 ```
 git clone https://github.com/LQCT/RCDPeaks.git
+cd RCDPeaks/
 python setup.py install
 ```
 Then, you should be able to see RCDPeaks help by typing in a console:
