@@ -1,2 +1,5 @@
 working
 __pycache__/
+build/
+dist/
+rcdpeaks.egg-info/
