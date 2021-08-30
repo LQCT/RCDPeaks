@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"><key id="d1" for="edge" attr.name="percent" attr.type="float"/>
+<key id="d0" for="node" attr.name="size" attr.type="int"/>
+<graph edgedefault="directed"><node id="1">
+  <data key="d0">1402</data>
+</node>
+<node id="2">
+  <data key="d0">4598</data>
+</node>
+<edge source="1" target="2">
+  <data key="d1">55.777460770328105</data>
+</edge>
+<edge source="2" target="1">
+  <data key="d1">17.007394519356243</data>
+</edge>
+</graph></graphml>
