@@ -21,12 +21,12 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",
     ],
-    packages=["rcdpeaks"],
+    packages=["rcdpeaks_functions"],
     include_package_data = True,
     install_requires=['numpy>=1.17.2', 'pandas>=0.25.1', 'matplotlib>=3.1.0', 'mdtraj>=1.9.4', 'networkx>=2.3'],
     entry_points={
         "console_scripts": [
-            "rcdpeaks = rcdpeaks.rcdpeaks:main",
+            "rcdpeaks = rcdpeaks_functions.__main__:main",
         ]
     },
 )

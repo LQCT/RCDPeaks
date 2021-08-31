@@ -8,7 +8,7 @@ import os
 from os.path import join
 
 import numpy as np
-import dpfuncs as dpf
+from rcdpeaks_functions import dpfuncs as dpf
 
 
 # >>>> Debugging section <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
