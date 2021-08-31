@@ -15,8 +15,8 @@ setup(
     long_description=README,
     long_description_content_type="text/markdown",
     url="https://github.com/LQCT/RCDPeaks.git",
-    author="Daniel Platero-Rochart & Roy González-Alemán",
-    author_email="[daniel.platero, roy_gonzalez]@fq.uh.cu",
+    author="Daniel Platero-Rochart",
+    author_email="daniel.platero@fq.uh.cu",
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",
