@@ -10,7 +10,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="rcdpeaks",
-    version="0.0.1"
+    version="0.0.1",
     description="Memory-Efficient Density Peaks Clustering for Long Molecular Dynamics",
     long_description=README,
     long_description_content_type="text/markdown",
