@@ -22,7 +22,7 @@ setup(
     ],
     packages=["rcdpeaks"],
     include_package_data = True,
-    install_requires=['numpy>=1.20.3', 'pandas>=1.3.1', 'matplotlib>=3.4.2', 'mdtraj>=1.9.5', 'networkx>=2.3'],
+    install_requires=['numpy>=1.17.2', 'pandas>=0.25.1', 'matplotlib>=3.1.0', 'mdtraj>=1.9.4', 'networkx>=2.3'],
     entry_points={
         "console_scripts": [
             "rcdpeaks = rcdpeaks.rcdpeaks:main",
